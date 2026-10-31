@@ -1,0 +1,6 @@
+id=a2dpsink_android15
+name=A2DP Sink for Android 15
+version=1.2.1
+versionCode=4
+author=Community project
+description=Enables A2DP Sink at boot. Use the Action button to apply audio focus and restart Bluetooth on demand.
