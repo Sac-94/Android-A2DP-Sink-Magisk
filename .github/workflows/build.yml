@@ -1,18 +1,45 @@
-name: Build Magisk module
+name: Build and Publish Release
+
 on:
   push:
-  pull_request:
+    tags:
+      - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example v1.2.1"
+        required: true
+        default: "v1.2.1"
+
 permissions:
-  contents: read
+  contents: write
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Build ZIP
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine release tag
+        id: release
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Magisk module
         run: sh ./build.sh
-      - uses: actions/upload-artifact@v4
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
         with:
-          name: A2DP-Sink-Android15-Magisk
-          path: release/A2DP-Sink-Android15-Magisk.zip
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: A2DP Sink Magisk Module ${{ steps.release.outputs.tag }}
+          files: release/A2DP-Sink-Android15-Magisk.zip
+          generate_release_notes: true
+          make_latest: true
